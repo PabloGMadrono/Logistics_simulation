@@ -173,41 +173,61 @@ class TestSendProduct(TestCase):
 
 
     @freeze_time("2023-03-08")
-    def test_get_vaccine_date_no_ok_data_manipulated( self ):
+    def test_get_vaccine_date_no_ok_data_manipulated(self):
         """ no quotes , not valid """
+
+
+
         file_test = JSON_FILES_RF2_PATH + "valid.json"
         my_manager = OrderManager()
+
         file_store = JSON_FILES_PATH + "orders_store.json"
         file_store_date = JSON_FILES_PATH + "shipments_store.json"
 
-        #rename the manipulated order's store
-        if os.path.isfile(file_store):
 
+        import shutil
+        if os.path.isfile(JSON_FILES_PATH + "swap.json"):
+            os.remove(JSON_FILES_PATH + "swap.json")
+        if not os.path.isfile(JSON_FILES_PATH + "orders_store_manipulated.json"):
+            shutil.copy(JSON_FILES_RF2_PATH + "orders_store_manipulated.json",
+                        JSON_FILES_PATH + "orders_store.json")
+        # rename the manipulated patient's store
+        if os.path.isfile(file_store):
+            print(file_store)
+        print(JSON_FILES_PATH + "swap.json")
+        if os.path.isfile(file_store):
             os.rename(file_store, JSON_FILES_PATH + "swap.json")
-        os.rename(JSON_FILES_PATH + "orders_store_manipulated.json",file_store)
+        os.rename(JSON_FILES_PATH + "orders_store_manipulated.json", file_store)
 
         # read the file to compare file content before and after method call
         if os.path.isfile(file_store_date):
             with open(file_store_date, "r", encoding="utf-8", newline="") as file_org:
-                hash_original = hashlib.md5(str(file_org).encode()).hexdigest()
+                hash_original = hashlib.md5(file_org.__str__().encode()).hexdigest()
         else:
             hash_original = ""
-
         # check the method
-        with self.assertRaises(OrderManagementException) as c_m:
-            my_manager.send_product(file_test)
+        # with self.assertRaises(VaccineManagementException) as c_m:
+        # my_manager.get_vaccine_date(file_test)
 
-        #restore the original orders' store
+        try:
+            my_manager.send_product(file_test)
+            exception_message = "Exception not raised"
+        except Exception as exception_raised:
+            exception_message = exception_raised.__str__()
+
+        # restore the original patient's store
         os.rename(file_store, JSON_FILES_PATH + "orders_store_manipulated.json")
         if os.path.isfile(JSON_FILES_PATH + "swap.json"):
-
+            print(JSON_FILES_PATH + "swap.json")
+            print(file_store)
             os.rename(JSON_FILES_PATH + "swap.json", file_store)
+
         # read the file again to campare
         if os.path.isfile(file_store_date):
             with open(file_store_date, "r", encoding="utf-8", newline="") as file:
-                hash_new = hashlib.md5(str(file).encode()).hexdigest()
+                hash_new = hashlib.md5(file.__str__().encode()).hexdigest()
         else:
             hash_new = ""
 
-        self.assertEqual(c_m.exception.message, "Orders' data have been manipulated")
+        self.assertEqual(exception_message, "Orders' data have been manipulated")
         self.assertEqual(hash_new, hash_original)
