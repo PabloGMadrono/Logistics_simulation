@@ -94,7 +94,7 @@ class TestSendProduct(TestCase):
                                   phone_number="+34123456789",
                                   zip_code="01000")
     #check the method
-        value = my_manager.send_product(file_test)
+        value = my_manager.send_order(file_test)
         self.assertEqual(value, "847dfd443d86c9c222242010c11a44bd9a09c37b42b6e956db97ba173abefe83")
 
     #check shipments_store
@@ -127,7 +127,7 @@ class TestSendProduct(TestCase):
                                   phone_number="+34333456789",
                                   zip_code="01001")
         # check the method
-        value = my_manager.send_product(file_test)
+        value = my_manager.send_order(file_test)
         self.assertEqual(value, "4677574bebf6737df4d85993dace90d988595649c918dad033151235749887ab")
 
         # check store_date
@@ -158,7 +158,7 @@ class TestSendProduct(TestCase):
 
                 # check the method
                 with self.assertRaises(OrderManagementException) as c_m:
-                    my_manager.send_product(file_test)
+                    my_manager.send_order(file_test)
                 self.assertEqual(c_m.exception.message, expected_value)
 
                 # read the file again to compare
@@ -210,7 +210,7 @@ class TestSendProduct(TestCase):
         # my_manager.get_vaccine_date(file_test)
 
         try:
-            my_manager.send_product(file_test)
+            my_manager.send_order(file_test)
             exception_message = "Exception not raised"
         except Exception as exception_raised:
             exception_message = exception_raised.__str__()

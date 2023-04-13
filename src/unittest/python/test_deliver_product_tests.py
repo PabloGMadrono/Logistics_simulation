@@ -33,7 +33,7 @@ class TestDeliverProduct(TestCase):
                                   order_type="Regular",
                                   phone_number="+34123456789",
                                   zip_code="01000")
-        my_manager.send_product(file_test)
+        my_manager.send_order(file_test)
 
 
 
