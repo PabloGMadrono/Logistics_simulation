@@ -26,25 +26,13 @@ class OrderManager:
             raise OrderManagementException("tracking_code format is not valid")
 
     @staticmethod
-    def save_order_store(orders):
+    def store_orders(orders, file_store):
         """Method for saving the orders store"""
-        order_store = JSON_FILES_PATH + "orders_store.json"
         #first read the file
-        order_list = OrderManager.file_open(order_store)
+        order_list = OrderManager.file_open(file_store)
 
         OrderManager.data_list_append(order_list, orders)
-        OrderManager.write_file(order_list, order_store)
-
-    @staticmethod
-    def save_orders_shipped(shipment):
-        """Saves the shipping object into a file"""
-        shipments_store_file = JSON_FILES_PATH + "shipments_store.json"
-        # first read the file
-        shipment_list = OrderManager.file_open(shipments_store_file)
-        #append the shipments list
-        shipment_list.append(shipment.__dict__)
-
-        OrderManager.write_file(shipment_list, shipments_store_file)
+        OrderManager.write_file(order_list, file_store)
 
     @staticmethod
     def data_list_append(data_list, data):
@@ -70,19 +58,6 @@ class OrderManager:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
         return order_list
 
-    #@staticmethod
-    """def save_fast(data):
-        """"""Method for saving the orders store""""""
-        orders_store = JSON_FILES_PATH + "orders_store.json"
-        with open(orders_store, "r+", encoding="utf-8", newline="") as file:
-            data_list = json.load(file)
-            data_list.append(data.__dict__)
-            file.seek(0)
-            json.dump(data_list, file, indent=2)
-            esto sobra creo"""
-
-
-
     @staticmethod
     def write_file(data_list, file_store):
         #Method to write in a file
@@ -99,16 +74,16 @@ class OrderManager:
                         phone_number,
                         zip_code):
         """Register the orders into the order's file"""
-
-        my_order = OrderRequest(product_id,
+        order_path = JSON_FILES_PATH + "orders_store.json"
+        order = OrderRequest(product_id,
                                 order_type,
                                 address,
                                 phone_number,
                                 zip_code)
 
-        self.save_order_store(my_order)
+        self.store_orders(order, order_path)
 
-        return my_order.order_id
+        return order.order_id
 
 
     #pylint: disable=too-many-locals
@@ -124,16 +99,17 @@ class OrderManager:
 
         product_id, reg_type = self.validate_order_id(file_store, order_data)
 
-        my_sign = OrderShipping(product_id=product_id,
+        shipments = OrderShipping(product_id=product_id,
                                order_id=order_data["OrderID"],
                                order_type=reg_type,
                                delivery_email=order_data["ContactEmail"])
 
-        #save the OrderShipping in shipments_store.json
+        # save the OrderShipping in shipments_store.json
 
-        self.save_orders_shipped(my_sign)
+        shipments_store = JSON_FILES_PATH + "shipments_store.json"
+        self.store_orders(shipments, shipments_store)
 
-        return my_sign.tracking_code
+        return shipments.tracking_code
 
     def validate_order_id(self, file_store, order_data):
         with open(file_store, "r", encoding="utf-8", newline="") as file:
@@ -189,13 +165,7 @@ class OrderManager:
         # first read the file
         shipments_list = self.file_read(shimpents_store_file)
         #search this tracking_code
-        found = False
-        for item in shipments_list:
-            if item["_OrderShipping__tracking_code"] == tracking_code:
-                found = True
-                del_timestamp = item["_OrderShipping__delivery_day"]
-        if not found:
-            raise OrderManagementException("tracking_code is not found")
+        del_timestamp = OrderManager.data_list_search(shipments_list, tracking_code)
 
         today= datetime.today().date()
         delivery_date= datetime.fromtimestamp(del_timestamp).date()
@@ -211,6 +181,16 @@ class OrderManager:
         shipments_list.append(str(datetime.utcnow()))
         OrderManager.write_file(shipments_list, shipments_file)
         return True
+    @staticmethod
+    def data_list_search(data_list, tracking_code):
+        found = False
+        for item in data_list:
+            if item["_OrderShipping__tracking_code"] == tracking_code:
+                found = True
+                del_timestamp = item["_OrderShipping__delivery_day"]
+        if not found:
+            raise OrderManagementException("tracking_code is not found")
+        return del_timestamp
 
     @staticmethod
     def file_read(path_store):
