@@ -8,6 +8,7 @@ class ProductId(Attribute):
         self._validation_pattern = r"^[0-9]{13}$"
         self._attr_value = self._validate(attr_value)
 
+
     def _validate(self, attr_value):
         # PLEASE INCLUDE HERE THE CODE FOR VALIDATING THE EAN13
         # RETURN TRUE IF THE EAN13 IS RIGHT, OR FALSE IN OTHER CASE

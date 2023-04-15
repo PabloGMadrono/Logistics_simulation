@@ -15,7 +15,68 @@ class OrderManager:
     def __init__(self):
         pass
 
+        # pylint: disable=too-many-arguments
+    def register_order(self, product_id,
+                        order_type,
+                        address,
+                        phone_number,
+                        zip_code):
+        """Register the orders into the order's file"""
+        order_path = JSON_FILES_PATH + "orders_store.json"
+        order = OrderRequest(product_id,
+                              order_type,
+                              address,
+                              phone_number,
+                              zip_code)
 
+        self.store_orders(order, order_path)
+
+        return order.order_id
+
+        # pylint: disable=too-many-locals
+    def send_order(self, order_file):
+        """Sends the order included in the input_file"""
+        order_data = OrderManager.file_read(order_file)
+
+        # check all the information
+        OrderManager.regex_check(order_data, r"[0-9a-fA-F]{32}$", "OrderID")
+        OrderManager.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$')
+
+        file_store = JSON_FILES_PATH + "orders_store.json"
+
+        product_id, reg_type = self.validate_order_id(file_store, order_data)
+
+        shipments = OrderShipping(product_id=product_id,
+                                    order_id=order_data["OrderID"],
+                                    order_type=reg_type,
+                                    delivery_email=order_data["ContactEmail"])
+
+        # save the OrderShipping in shipments_store.json
+
+        shipments_store = JSON_FILES_PATH + "shipments_store.json"
+        self.store_orders(shipments, shipments_store)
+
+        return shipments.tracking_code
+
+    def deliver_product(self, tracking_code):
+        """Register the delivery of the product"""
+        self.validate_tracking_code(tracking_code)
+        # check if this tracking_code is in shipments_store
+        shimpents_store_file = JSON_FILES_PATH + "shipments_store.json"
+
+        # first read the file
+        shipments_list = self.file_read(shimpents_store_file)
+
+        # search this tracking_code
+        OrderManager.check_date(shipments_list, tracking_code)
+        shipments_file = JSON_FILES_PATH + "shipments_delivered.json"
+        shipments_list = OrderManager.file_open(shipments_file)
+
+        # append the delivery info
+        shipments_list.append(str(tracking_code))
+        shipments_list.append(str(datetime.utcnow()))
+        OrderManager.write_file(shipments_list, shipments_file)
+        return True
 
     @staticmethod
     def validate_tracking_code(tracking_code):
@@ -67,51 +128,12 @@ class OrderManager:
         except FileNotFoundError as ex:
             raise OrderManagementException("Wrong file or file path") from ex
 
-    #pylint: disable=too-many-arguments
-    def register_order(self, product_id,
-                        order_type,
-                        address,
-                        phone_number,
-                        zip_code):
-        """Register the orders into the order's file"""
-        order_path = JSON_FILES_PATH + "orders_store.json"
-        order = OrderRequest(product_id,
-                                order_type,
-                                address,
-                                phone_number,
-                                zip_code)
-
-        self.store_orders(order, order_path)
-
-        return order.order_id
 
 
-    #pylint: disable=too-many-locals
-    def send_order(self, order_file):
-        """Sends the order included in the input_file"""
-        order_data = OrderManager.file_read(order_file)
 
-        #check all the information
-        OrderManager.regex_check(order_data, r"[0-9a-fA-F]{32}$", "OrderID")
-        OrderManager.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$', "ContactEmail")
 
-        file_store = JSON_FILES_PATH + "orders_store.json"
-
-        product_id, reg_type = self.validate_order_id(file_store, order_data)
-
-        shipments = OrderShipping(product_id=product_id,
-                               order_id=order_data["OrderID"],
-                               order_type=reg_type,
-                               delivery_email=order_data["ContactEmail"])
-
-        # save the OrderShipping in shipments_store.json
-
-        shipments_store = JSON_FILES_PATH + "shipments_store.json"
-        self.store_orders(shipments, shipments_store)
-
-        return shipments.tracking_code
-
-    def validate_order_id(self, file_store, order_data):
+    @staticmethod
+    def validate_order_id(file_store, order_data):
         with open(file_store, "r", encoding="utf-8", newline="") as file:
             data_list = json.load(file)
         found = False
@@ -156,33 +178,9 @@ class OrderManager:
         except KeyError as ex:
             raise OrderManagementException("Bad label") from ex
 
-    def deliver_product( self, tracking_code ):
-        """Register the delivery of the product"""
-        self.validate_tracking_code(tracking_code)
 
-        #check if this tracking_code is in shipments_store
-        shimpents_store_file = JSON_FILES_PATH + "shipments_store.json"
-        # first read the file
-        shipments_list = self.file_read(shimpents_store_file)
-        #search this tracking_code
-        del_timestamp = OrderManager.data_list_search(shipments_list, tracking_code)
-
-        today= datetime.today().date()
-        delivery_date= datetime.fromtimestamp(del_timestamp).date()
-        if delivery_date != today:
-            raise OrderManagementException("Today is not the delivery date")
-
-        shipments_file = JSON_FILES_PATH + "shipments_delivered.json"
-
-        shipments_list = OrderManager.file_open(shipments_file)
-
-            # append the delivery info
-        shipments_list.append(str(tracking_code))
-        shipments_list.append(str(datetime.utcnow()))
-        OrderManager.write_file(shipments_list, shipments_file)
-        return True
     @staticmethod
-    def data_list_search(data_list, tracking_code):
+    def check_date(data_list, tracking_code):
         found = False
         for item in data_list:
             if item["_OrderShipping__tracking_code"] == tracking_code:
@@ -190,7 +188,10 @@ class OrderManager:
                 del_timestamp = item["_OrderShipping__delivery_day"]
         if not found:
             raise OrderManagementException("tracking_code is not found")
-        return del_timestamp
+        today = datetime.today().date()
+        delivery_date = datetime.fromtimestamp(del_timestamp).date()
+        if delivery_date != today:
+            raise OrderManagementException("Today is not the delivery date")
 
     @staticmethod
     def file_read(path_store):

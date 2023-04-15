@@ -9,10 +9,14 @@ class Attribute():
         self._validation_pattern = ""
 
     def _validate(self, attr_value):
-        my_regex = re.compile(self._validation_pattern)
-        res = my_regex.fullmatch(attr_value)
-        if not res:
-            raise OrderManagementException(self._error_message)
+        try:
+            my_regex = re.compile(self._validation_pattern)
+            res = my_regex.fullmatch(attr_value)
+            if not res:
+                raise OrderManagementException(self._error_message)
+        except KeyError as ex:
+            raise OrderManagementException("Bad label") from ex
+
         return attr_value
 
     @property
