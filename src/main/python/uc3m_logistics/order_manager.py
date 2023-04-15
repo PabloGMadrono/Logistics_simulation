@@ -36,11 +36,11 @@ class OrderManager:
         # pylint: disable=too-many-locals
     def send_order(self, order_file):
         """Sends the order included in the input_file"""
-        order_data = OrderManager.file_read(order_file)
+        order_data = self.file_read(order_file)
 
         # check all the information
-        OrderManager.regex_check(order_data, r"[0-9a-fA-F]{32}$", "OrderID")
-        OrderManager.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$', "ContactEmail")
+        #self.regex_check(order_data, r"[0-9a-fA-F]{32}$", "OrderID")
+        #self.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$', "ContactEmail")
 
         file_store = JSON_FILES_PATH + "orders_store.json"
 
@@ -68,35 +68,35 @@ class OrderManager:
         shipments_list = self.file_read(shimpents_store_file)
 
         # search this tracking_code
-        OrderManager.check_date(shipments_list, tracking_code)
+        self.check_date(shipments_list, tracking_code)
         shipments_file = JSON_FILES_PATH + "shipments_delivered.json"
-        shipments_list = OrderManager.file_open(shipments_file)
+        shipments_list = self.file_open(shipments_file)
 
         # append the delivery info
         shipments_list.append(str(tracking_code))
         shipments_list.append(str(datetime.utcnow()))
-        OrderManager.write_file(shipments_list, shipments_file)
+        self.write_file(shipments_list, shipments_file)
         return True
 
-    @staticmethod
-    def validate_tracking_code(tracking_code):
+
+    def validate_tracking_code(self, tracking_code):
         """Method for validating sha256 values"""
         myregex = re.compile(r"[0-9a-fA-F]{64}$")
         res = myregex.fullmatch(tracking_code)
         if not res:
             raise OrderManagementException("tracking_code format is not valid")
 
-    @staticmethod
-    def store_orders(orders, file_store):
+
+    def store_orders(self, orders, file_store):
         """Method for saving the orders store"""
         #first read the file
-        order_list = OrderManager.file_open(file_store)
+        order_list = self.file_open(file_store)
 
-        OrderManager.data_list_append(order_list, orders)
-        OrderManager.write_file(order_list, file_store)
+        self.data_list_append(order_list, orders)
+        self.write_file(order_list, file_store)
 
-    @staticmethod
-    def data_list_append(data_list, data):
+
+    def data_list_append(self, data_list, data):
         found = False
         for item in data_list:
             if item["_OrderRequest__order_id"] == data.order_id:
@@ -106,8 +106,8 @@ class OrderManager:
         else:
             raise OrderManagementException("order_id is already registered in orders_store")
 
-    @staticmethod
-    def file_open(path_store):
+
+    def file_open(self, path_store):
         #New method to get order_list and return empty order_list if not found file
         try:
             with open(path_store, "r", encoding="utf-8", newline="") as file:
@@ -119,8 +119,8 @@ class OrderManager:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
         return order_list
 
-    @staticmethod
-    def write_file(data_list, file_store):
+
+    def write_file(self, data_list, file_store):
         #Method to write in a file
         try:
             with open(file_store, "w", encoding="utf-8", newline="") as file:
@@ -132,8 +132,20 @@ class OrderManager:
 
 
 
-    @staticmethod
-    def validate_order_id(file_store, order_data):
+
+    def validate_order_id(self, file_store, order_data):
+        try:
+            myregex = re.compile(r"[0-9a-fA-F]{32}$")
+            order_id_check = myregex.fullmatch(order_data["OrderID"])
+            myregex = re.compile(r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$')
+            email_check = myregex.fullmatch(order_data["ContactEmail"])
+            if not order_id_check:
+                raise OrderManagementException("order id is not valid")
+            if not email_check:
+                raise OrderManagementException("contact email is not valid")
+        except KeyError as ex:
+            raise OrderManagementException("Bad label") from ex
+
         with open(file_store, "r", encoding="utf-8", newline="") as file:
             data_list = json.load(file)
         found = False
@@ -161,8 +173,8 @@ class OrderManager:
             raise OrderManagementException("order_id not found")
         return product_id, reg_type
 
-    @staticmethod
-    def regex_check(data, order_reg, type):
+
+    """def regex_check(self, data, order_reg, type):
         try:
             myregex = re.compile(order_reg)
             result = myregex.fullmatch(data[type])
@@ -176,11 +188,11 @@ class OrderManager:
 
                 raise OrderManagementException(type + " is not valid")
         except KeyError as ex:
-            raise OrderManagementException("Bad label") from ex
+            raise OrderManagementException("Bad label") from ex"""
 
 
-    @staticmethod
-    def check_date(data_list, tracking_code):
+
+    def check_date(self, data_list, tracking_code):
         found = False
         for item in data_list:
             if item["_OrderShipping__tracking_code"] == tracking_code:
@@ -193,8 +205,8 @@ class OrderManager:
         if delivery_date != today:
             raise OrderManagementException("Today is not the delivery date")
 
-    @staticmethod
-    def file_read(path_store):
+
+    def file_read(self, path_store):
         #Difference with file_open is file not found error
         try:
             with open(path_store, "r", encoding="utf-8", newline="") as file:
