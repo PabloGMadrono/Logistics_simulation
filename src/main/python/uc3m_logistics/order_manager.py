@@ -40,7 +40,7 @@ class OrderManager:
 
         # check all the information
         OrderManager.regex_check(order_data, r"[0-9a-fA-F]{32}$", "OrderID")
-        OrderManager.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$')
+        OrderManager.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$', "ContactEmail")
 
         file_store = JSON_FILES_PATH + "orders_store.json"
 
