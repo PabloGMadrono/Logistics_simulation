@@ -8,7 +8,8 @@ from .order_request import OrderRequest
 from .order_management_exception import OrderManagementException
 from .order_shipping import OrderShipping
 from .order_manager_config import JSON_FILES_PATH
-
+from .storage.orders_json_store import order_store
+from .storage.JSONstore import JSONStore
 
 class OrderManager:
     """Class for providing the methods for managing the orders process"""
