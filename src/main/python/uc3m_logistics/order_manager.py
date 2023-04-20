@@ -45,7 +45,7 @@ class OrderManager:
 
         file_store = JSON_FILES_PATH + "orders_store.json"
 
-        product_id, reg_type = self.validate_order_id(file_store, order_data)
+        product_id, reg_type = self.validate_order_id(order_data)
 
         shipments = OrderShipping(product_id=product_id,
                                     order_id=order_data["OrderID"],
@@ -134,7 +134,7 @@ class OrderManager:
 
 
 
-    def validate_order_id(self, file_store, order_data):
+    def validate_order_id(self, order_data):
         try:
             myregex = re.compile(r"[0-9a-fA-F]{32}$")
             order_id_check = myregex.fullmatch(order_data["OrderID"])
@@ -147,12 +147,10 @@ class OrderManager:
         except KeyError as ex:
             raise OrderManagementException("Bad label") from ex
 
-        with open(file_store, "r", encoding="utf-8", newline="") as file:
-            data_list = json.load(file)
-        found = False
-        for item in data_list:
-            if item["_OrderRequest__order_id"] == order_data["OrderID"]:
-                found = True
+        order_json_store = order_store()
+        item = order_json_store.find("_OrderRequest__order_id", order_data["OrderID"])
+
+        if item:
                 # retrieve the orders data
                 product_id = item["_OrderRequest__product_id"]
                 address = item["_OrderRequest__delivery_address"]
@@ -170,7 +168,7 @@ class OrderManager:
 
                 if order.order_id != order_data["OrderID"]:
                     raise OrderManagementException("Orders' data have been manipulated")
-        if not found:
+        else:
             raise OrderManagementException("order_id not found")
         return product_id, reg_type
 

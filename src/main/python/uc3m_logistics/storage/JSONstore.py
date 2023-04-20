@@ -41,7 +41,7 @@ class JSONStore():
     def find(self, key, value):
         self.file_open()
         with open(self._file_store, "r", encoding="utf-8", newline="") as file:
-            data_list = json.load(file)
+            self._data_list = json.load(file)
         found = False
         for item in self._data_list:
             if item[key] == value:
