@@ -19,29 +19,27 @@ class JSONStore():
         #New method to get order_list and return empty order_list if not found file
         try:
             with open(self._file_store, "r", encoding="utf-8", newline="") as file:
-                order_list = json.load(file)
+                self._data_list = json.load(file)
         except FileNotFoundError:
             # file is not found , so  init my data_list
-            order_list = []
+            self._data_list = []
         except json.JSONDecodeError as ex:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
-        return order_list
+
 
     def file_read(self):
         # Difference with file_open is file not found error
         try:
             with open(self._file_store, "r", encoding="utf-8", newline="") as file:
-                data_list = json.load(file)
+                self._data_list = json.load(file)
         except json.JSONDecodeError as ex:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
         except FileNotFoundError as ex:
             raise OrderManagementException(self._file_store[len(JSON_FILES_PATH):-5] + " " + "not found") from ex
-        return data_list
+
 
     def find(self, key, value):
         self.file_open()
-        with open(self._file_store, "r", encoding="utf-8", newline="") as file:
-            self._data_list = json.load(file)
         found = False
         for item in self._data_list:
             if item[key] == value:
@@ -56,7 +54,5 @@ class JSONStore():
     def store_orders(self):
         """Method for saving the orders store"""
         # first read the file
-        order_list = self.file_open()
-
-        self.add(order_list)
-        self.write_file()
+        self._data_list = self.file_open()
+        self.add(self._data_list)

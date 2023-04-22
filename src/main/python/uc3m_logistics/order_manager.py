@@ -9,6 +9,8 @@ from .order_management_exception import OrderManagementException
 from .order_shipping import OrderShipping
 from .order_manager_config import JSON_FILES_PATH
 from .storage.orders_json_store import order_store
+from.storage.shipments_json_store import shipment_store
+from .storage.shipments_deliver_json_store import shipment_deliver
 from .storage.JSONstore import JSONStore
 
 class OrderManager:
@@ -23,39 +25,40 @@ class OrderManager:
                         phone_number,
                         zip_code):
         """Register the orders into the order's file"""
-        order_path = JSON_FILES_PATH + "orders_store.json"
         order = OrderRequest(product_id,
                               order_type,
                               address,
                               phone_number,
                               zip_code)
 
-        self.store_orders(order, order_path)
+        orders = order_store()
+        orders.add(order)
 
         return order.order_id
 
         # pylint: disable=too-many-locals
     def send_order(self, order_file):
         """Sends the order included in the input_file"""
-        order_data = self.file_read(order_file)
+        order = order_store()
+        order._file_store = order_file
+        order.file_read()
 
         # check all the information
         #self.regex_check(order_data, r"[0-9a-fA-F]{32}$", "OrderID")
         #self.regex_check(order_data, r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$', "ContactEmail")
 
-        file_store = JSON_FILES_PATH + "orders_store.json"
 
-        product_id, reg_type = self.validate_order_id(order_data)
+        product_id, reg_type = self.validate_order_id(order._data_list)
 
         shipments = OrderShipping(product_id=product_id,
-                                    order_id=order_data["OrderID"],
+                                    order_id=order._data_list["OrderID"],
                                     order_type=reg_type,
-                                    delivery_email=order_data["ContactEmail"])
+                                    delivery_email=order._data_list["ContactEmail"])
 
         # save the OrderShipping in shipments_store.json
 
-        shipments_store = JSON_FILES_PATH + "shipments_store.json"
-        self.store_orders(shipments, shipments_store)
+        shipment = shipment_store()
+        shipment.add(shipments)
 
         return shipments.tracking_code
 
@@ -63,20 +66,20 @@ class OrderManager:
         """Register the delivery of the product"""
         self.validate_tracking_code(tracking_code)
         # check if this tracking_code is in shipments_store
-        shimpents_store_file = JSON_FILES_PATH + "shipments_store.json"
 
         # first read the file
-        shipments_list = self.file_read(shimpents_store_file)
+        shipment = shipment_store()
+        shipment.file_read()
 
         # search this tracking_code
-        self.check_date(shipments_list, tracking_code)
-        shipments_file = JSON_FILES_PATH + "shipments_delivered.json"
-        shipments_list = self.file_open(shipments_file)
-
+        self.check_date(shipment._data_list, tracking_code)
+        shipment_delivers = shipment_deliver()
+        shipment_delivers.file_open()
         # append the delivery info
-        shipments_list.append(str(tracking_code))
-        shipments_list.append(str(datetime.utcnow()))
-        self.write_file(shipments_list, shipments_file)
+        shipment_delivers._data_list.append(str(tracking_code))
+        shipment_delivers._data_list.append(str(datetime.utcnow()))
+
+        shipment_delivers.write_file()
         return True
 
 
@@ -87,49 +90,18 @@ class OrderManager:
         if not res:
             raise OrderManagementException("tracking_code format is not valid")
 
-
-    def store_orders(self, orders, file_store):
-        """Method for saving the orders store"""
-        #first read the file
-        order_list = self.file_open(file_store)
-
-        self.data_list_append(order_list, orders)
-        self.write_file(order_list, file_store)
-
-
-    def data_list_append(self, data_list, data):
+    def check_date(self, data_list, tracking_code):
         found = False
         for item in data_list:
-            if item["_OrderRequest__order_id"] == data.order_id:
+            if item["_OrderShipping__tracking_code"] == tracking_code:
                 found = True
-        if found is False:
-            data_list.append(data.__dict__)
-        else:
-            raise OrderManagementException("order_id is already registered in orders_store")
-
-
-    def file_open(self, path_store):
-        #New method to get order_list and return empty order_list if not found file
-        try:
-            with open(path_store, "r", encoding="utf-8", newline="") as file:
-                order_list = json.load(file)
-        except FileNotFoundError:
-            # file is not found , so  init my data_list
-            order_list = []
-        except json.JSONDecodeError as ex:
-            raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
-        return order_list
-
-
-    def write_file(self, data_list, file_store):
-        #Method to write in a file
-        try:
-            with open(file_store, "w", encoding="utf-8", newline="") as file:
-                json.dump(data_list, file, indent=2)
-        except FileNotFoundError as ex:
-            raise OrderManagementException("Wrong file or file path") from ex
-
-
+                del_timestamp = item["_OrderShipping__delivery_day"]
+        if not found:
+            raise OrderManagementException("tracking_code is not found")
+        today = datetime.today().date()
+        delivery_date = datetime.fromtimestamp(del_timestamp).date()
+        if delivery_date != today:
+            raise OrderManagementException("Today is not the delivery date")
 
 
 
@@ -173,6 +145,59 @@ class OrderManager:
         return product_id, reg_type
 
 
+
+    """
+        def store_orders(self, orders, file_store):
+        """"""Method for saving the orders store""""""
+        #first read the file
+        order_list = self.file_open(file_store)
+
+        self.data_list_append(order_list, orders)
+        self.write_file(order_list, file_store)"""
+
+    """
+    def data_list_append(self, data_list, data):
+        found = False
+        for item in data_list:
+            if item["_OrderRequest__order_id"] == data.order_id:
+                found = True
+        if found is False:
+            data_list.append(data.__dict__)
+        else:
+            raise OrderManagementException("order_id is already registered in orders_store")"""
+
+
+    """    
+        def file_open(self, path_store):
+        #New method to get order_list and return empty order_list if not found file
+        try:
+            with open(path_store, "r", encoding="utf-8", newline="") as file:
+                order_list = json.load(file)
+        except FileNotFoundError:
+            # file is not found , so  init my data_list
+            order_list = []
+        except json.JSONDecodeError as ex:
+            raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
+        return order_list"""
+
+    """
+
+    def write_file(self, data_list, file_store):
+        #Method to write in a file
+        try:
+            with open(file_store, "w", encoding="utf-8", newline="") as file:
+                json.dump(data_list, file, indent=2)
+        except FileNotFoundError as ex:
+            raise OrderManagementException("Wrong file or file path") from ex
+    """
+
+
+
+
+
+
+
+
     """def regex_check(self, data, order_reg, type):
         try:
             myregex = re.compile(order_reg)
@@ -191,21 +216,10 @@ class OrderManager:
 
 
 
-    def check_date(self, data_list, tracking_code):
-        found = False
-        for item in data_list:
-            if item["_OrderShipping__tracking_code"] == tracking_code:
-                found = True
-                del_timestamp = item["_OrderShipping__delivery_day"]
-        if not found:
-            raise OrderManagementException("tracking_code is not found")
-        today = datetime.today().date()
-        delivery_date = datetime.fromtimestamp(del_timestamp).date()
-        if delivery_date != today:
-            raise OrderManagementException("Today is not the delivery date")
 
 
-    def file_read(self, path_store):
+
+    """def file_read(self, path_store):
         #Difference with file_open is file not found error
         try:
             with open(path_store, "r", encoding="utf-8", newline="") as file:
@@ -214,4 +228,4 @@ class OrderManager:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
         except FileNotFoundError as ex:
             raise OrderManagementException(path_store[len(JSON_FILES_PATH):-5] + " " + "not found") from ex
-        return data_list
+        return data_list"""
