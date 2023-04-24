@@ -1,9 +1,9 @@
 """Contains the class OrderShipping"""
 from datetime import datetime
 import hashlib
-from .attributes.ProductIdValidation import ProductId
-from.attributes.DeliveryEmailValidation import DeliveryEmail
-from.attributes.OrderIDValidation import OrderID
+from .attributes.product_id_validation import ProductId
+from.attributes.email_validation import DeliveryEmail
+from.attributes.order_id_validation import OrderID
 
 #pylint: disable=too-many-instance-attributes
 class OrderShipping():

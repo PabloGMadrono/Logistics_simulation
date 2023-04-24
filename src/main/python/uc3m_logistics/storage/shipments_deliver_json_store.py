@@ -1,4 +1,4 @@
-from .JSONstore import JSONStore
+from .json_store import JSONStore
 from ..order_manager_config import JSON_FILES_PATH
 from ..order_management_exception import OrderManagementException
 

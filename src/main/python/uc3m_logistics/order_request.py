@@ -2,12 +2,11 @@
 import hashlib
 import json
 from datetime import datetime
-from .order_management_exception import OrderManagementException
-from .attributes.PhoneNumberValidation import PhoneNumber
-from .attributes.ProductIdValidation import ProductId
-from .attributes.AddressValidation import Address
-from .attributes.OrderTypeValidation import OrderType
-from .attributes.ZipCodeValidation import ZipCode
+from uc3m_logistics.attributes.phone_number_validation import PhoneNumber
+from uc3m_logistics.attributes.product_id_validation import ProductId
+from uc3m_logistics.attributes.address_validation import Address
+from uc3m_logistics.attributes.order_type_validation import OrderType
+from uc3m_logistics.attributes.zip_code_validation import ZipCode
 
 
 class OrderRequest:
@@ -75,7 +74,7 @@ class OrderRequest:
     def zip_code( self ):
         """Returns the order's zip_code"""
         return self.__zip_code
+
     @zip_code.setter
     def zip_code(self, zip_code):
         self.__zip_code == ZipCode(zip_code).value
-
