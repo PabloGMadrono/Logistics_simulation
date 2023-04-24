@@ -8,8 +8,8 @@ from uc3m_logistics.order_management_exception import OrderManagementException
 from uc3m_logistics.order_request import OrderRequest
 from uc3m_logistics.order_shipping import OrderShipping
 from uc3m_logistics.storage.orders_json_store import OrderStore
-from uc3m_logistics.storage.shipments_deliver_json_store import shipment_deliver
-from uc3m_logistics.storage.shipments_json_store import shipment_store
+from uc3m_logistics.storage.shipments_deliver_json_store import ShipmentDeliver
+from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 
 
 class OrderManager:
@@ -54,7 +54,7 @@ class OrderManager:
 
         # save the OrderShipping in shipments_store.json
 
-        shipment = shipment_store()
+        shipment = ShipmentStore()
         shipment.add(shipments)
 
         return shipments.tracking_code
@@ -65,12 +65,12 @@ class OrderManager:
         # check if this tracking_code is in shipments_store
 
         # first read the file
-        shipment = shipment_store()
+        shipment = ShipmentStore()
         shipment.file_read()
 
         # search this tracking_code
         self.check_date(shipment._data_list, tracking_code)
-        shipment_delivers = shipment_deliver()
+        shipment_delivers = ShipmentDeliver()
         shipment_delivers.file_open()
         # append the delivery info
         shipment_delivers._data_list.append(str(tracking_code))
