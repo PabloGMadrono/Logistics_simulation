@@ -11,6 +11,7 @@ from uc3m_logistics.storage.orders_json_store import OrderStore
 from uc3m_logistics.storage.shipments_deliver_json_store import ShipmentDeliver
 from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 
+from uc3m_logistics.InputShipment import InputFileShipment
 
 class OrderManager:
     """Class for providing the methods for managing the orders process"""
@@ -42,10 +43,8 @@ class OrderManager:
         order = OrderStore()
         order._file_store = order_file
         order.file_read()
-
-
-
-        product_id, reg_type = self.validate_order_id(order._data_list)
+        input_file = InputFileShipment(order._data_list)
+        product_id, reg_type = input_file.create_object()
 
         shipments = OrderShipping(product_id=product_id,
                                     order_id=order._data_list["OrderID"],
@@ -103,8 +102,8 @@ class OrderManager:
 
 
 
-    def validate_order_id(self, order_data):
-        """Validate order id"""
+    """def validate_order_id(self, order_data):
+        """"""Validate order id"""""""
         try:
             myregex = re.compile(r"[0-9a-fA-F]{32}$")
             order_id_check = myregex.fullmatch(order_data["OrderID"])
@@ -140,4 +139,4 @@ class OrderManager:
                 raise OrderManagementException("Orders' data have been manipulated")
         else:
             raise OrderManagementException("order_id not found")
-        return product_id, reg_type
+        return product_id, reg_type"""
