@@ -24,6 +24,7 @@ class InputFileShipment:
         return order_id, email
 
 
+
     def regex_check(self, order_id, email):
         myregex = re.compile(r"[0-9a-fA-F]{32}$")
         order_id_check = myregex.fullmatch(order_id)
@@ -33,6 +34,7 @@ class InputFileShipment:
             raise OrderManagementException("order id is not valid")
         if not email_check:
             raise OrderManagementException("contact email is not valid")
+
 
     def create_object(self):
         order_id, email = self.check_label()

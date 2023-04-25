@@ -71,13 +71,7 @@ class OrderManager:
 
 
         # search this tracking_code
-        shipment_delivers = ShipmentDeliver()
-        shipment_delivers.file_open()
-        # append the delivery info
-        shipment_delivers._data_list.append(str(tracking_code))
-        shipment_delivers._data_list.append(str(datetime.utcnow()))
-
-        shipment_delivers.write_file()
+        deliver_manager.create_delivery()
         return True
 
 

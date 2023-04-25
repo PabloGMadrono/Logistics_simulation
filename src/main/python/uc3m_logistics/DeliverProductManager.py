@@ -13,7 +13,7 @@ class DeliverProductManager:
         self.__tracking_code = tracking_code
         shipment = ShipmentStore()
         shipment.file_read()
-        self.__data_list = shipment._data_list
+        self.__shipment = shipment
 
     def validate_tracking_code(self):
         """Method for validating sha256 values"""
@@ -25,7 +25,7 @@ class DeliverProductManager:
     def check_date(self):
         """Method for checking the date"""
         found = False
-        for item in self.__data_list:
+        for item in self.__shipment._data_list:
             if item["_OrderShipping__tracking_code"] == self.__tracking_code:
                 found = True
                 del_timestamp = item["_OrderShipping__delivery_day"]
@@ -35,3 +35,11 @@ class DeliverProductManager:
         delivery_date = datetime.fromtimestamp(del_timestamp).date()
         if delivery_date != today:
             raise OrderManagementException("Today is not the delivery date")
+
+    def create_delivery(self):
+        self.__shipment.file_open()
+        # append the delivery info
+        self.__shipment._data_list.append(str(self.__tracking_code))
+        self.__shipment._data_list.append(str(datetime.utcnow()))
+
+        self.__shipment.write_file()
