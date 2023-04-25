@@ -1,14 +1,7 @@
 """Module """
-import re
-from datetime import datetime
-
-from freezegun import freeze_time
-
-from uc3m_logistics.order_management_exception import OrderManagementException
 from uc3m_logistics.order_request import OrderRequest
 from uc3m_logistics.order_shipping import OrderShipping
 from uc3m_logistics.storage.orders_json_store import OrderStore
-from uc3m_logistics.storage.shipments_deliver_json_store import ShipmentDeliver
 from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 
 from uc3m_logistics.InputShipment import InputFileShipment
