@@ -7,65 +7,71 @@ from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 from uc3m_logistics.InputShipment import InputFileShipment
 from uc3m_logistics.DeliverProductManager import DeliverProductManager
 
-class OrderManager:
-    """Class for providing the methods for managing the orders process"""
-    def __init__(self):
-        pass
 
-    # pylint: disable=too-many-arguments
-    def register_order(self, product_id,
-                        order_type,
-                        address,
-                        phone_number,
-                        zip_code):
-        """Register the orders into the order's file"""
-        order = OrderRequest(product_id,
-                              order_type,
-                              address,
-                              phone_number,
-                              zip_code)
+class OrderManager(object):
+    class __OrderManager:
+        """Class for providing the methods for managing the orders process"""
 
-        orders = OrderStore()
-        orders.add(order)
+        def __init__(self):
+            pass
 
-        return order.order_id
+        # pylint: disable=too-many-arguments
+        def register_order(self, product_id,
+                           order_type,
+                           address,
+                           phone_number,
+                           zip_code):
+            """Register the orders into the order's file"""
+            order = OrderRequest(product_id,
+                                 order_type,
+                                 address,
+                                 phone_number,
+                                 zip_code)
 
-        # pylint: disable=too-many-locals
-        # pylint: disable=protected-access
-    def send_order(self, order_file):
-        """Sends the order included in the input_file"""
-        order = OrderStore()
-        order._file_store = order_file
-        order.file_read()
-        input_file = InputFileShipment(order._data_list)
-        product_id, reg_type = input_file.create_object()
+            orders = OrderStore()
+            orders.add(order)
 
-        shipments = OrderShipping(product_id=product_id,
-                                    order_id=order._data_list["OrderID"],
-                                    order_type=reg_type,
-                                    delivery_email=order._data_list["ContactEmail"])
+            return order.order_id
 
-        # save the OrderShipping in shipments_store.json
+            # pylint: disable=too-many-locals
+            # pylint: disable=protected-access
 
-        shipment = ShipmentStore()
-        shipment.add(shipments)
+        def send_order(self, order_file):
+            """Sends the order included in the input_file"""
+            order = OrderStore()
+            order._file_store = order_file
+            order.file_read()
+            input_file = InputFileShipment(order._data_list)
+            product_id, reg_type = input_file.create_object()
 
-        return shipments.tracking_code
+            shipments = OrderShipping(product_id=product_id,
+                                      order_id=order._data_list["OrderID"],
+                                      order_type=reg_type,
+                                      delivery_email=order._data_list["ContactEmail"])
 
-    def deliver_product(self, tracking_code):
-        """Register the delivery of the product"""
-        deliver_manager = DeliverProductManager(tracking_code)
-        deliver_manager.validate_tracking_code()
-        deliver_manager.check_date()
-        # check if this tracking_code is in shipments_store
+            # save the OrderShipping in shipments_store.json
 
-        # first read the file
+            shipment = ShipmentStore()
+            shipment.add(shipments)
 
+            return shipments.tracking_code
 
+        def deliver_product(self, tracking_code):
+            """Register the delivery of the product"""
+            deliver_manager = DeliverProductManager(tracking_code)
+            deliver_manager.validate_tracking_code()
+            deliver_manager.check_date()
+            # check if this tracking_code is in shipments_store
 
-        # search this tracking_code
-        deliver_manager.create_delivery()
-        return True
+            # first read the file
 
+            # search this tracking_code
+            deliver_manager.create_delivery()
+            return True
 
+    instance = None
 
+    def __new__(cls):
+        if not OrderManager.instance:
+            OrderManager.instance = OrderManager.__OrderManager()
+        return OrderManager.instance
