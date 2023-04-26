@@ -4,7 +4,7 @@ from ..order_management_exception import OrderManagementException
 from ..order_manager_config import JSON_FILES_PATH
 
 
-class JSONStore():
+class JSONStore:
     """Class for JSON store"""
     _file_store = " "
     _data_list = []

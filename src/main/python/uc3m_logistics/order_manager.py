@@ -38,16 +38,13 @@ class OrderManager(object):
 
         def send_order(self, order_file):
             """Sends the order included in the input_file"""
-            order = OrderStore()
-            order._file_store = order_file
-            order.file_read()
-            input_file = InputFileShipment(order._data_list)
-            product_id, reg_type = input_file.create_object()
+            input_file = InputFileShipment(order_file)
+            product_id, reg_type, order_id, email = input_file.create_object()
 
             shipments = OrderShipping(product_id=product_id,
-                                      order_id=order._data_list["OrderID"],
+                                      order_id=order_id,
                                       order_type=reg_type,
-                                      delivery_email=order._data_list["ContactEmail"])
+                                      delivery_email=email)
 
             # save the OrderShipping in shipments_store.json
 
