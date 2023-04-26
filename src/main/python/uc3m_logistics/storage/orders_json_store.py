@@ -3,6 +3,7 @@ from .json_store import JSONStore
 from ..order_manager_config import JSON_FILES_PATH
 from ..order_management_exception import OrderManagementException
 
+
 class OrderStore(JSONStore):
     """Class for order Store"""
     _file_store = JSON_FILES_PATH + "orders_store.json"
