@@ -4,12 +4,14 @@ from uc3m_logistics.order_shipping import OrderShipping
 from uc3m_logistics.storage.orders_json_store import OrderStore
 from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 
-from uc3m_logistics.InputShipment import InputFileShipment
-from uc3m_logistics.DeliverProductManager import DeliverProductManager
+from uc3m_logistics.input_shipment import InputFileShipment
+from uc3m_logistics.deliver_product_manager import DeliverProductManager
 
 
-class OrderManager(object):
-    class __OrderManager:
+class OrderManager:
+    # pylint: disable=too-few-public-methods
+    """Singleton for order manager"""
+    class SingletonOrderManager:
         """Class for providing the methods for managing the orders process"""
 
         def __init__(self):
@@ -40,17 +42,12 @@ class OrderManager(object):
             """Sends the order included in the input_file"""
             input_file = InputFileShipment(order_file)
             product_id, reg_type, order_id, email = input_file.create_object()
-
             shipments = OrderShipping(product_id=product_id,
                                       order_id=order_id,
                                       order_type=reg_type,
                                       delivery_email=email)
-
-            # save the OrderShipping in shipments_store.json
-
             shipment = ShipmentStore()
             shipment.add(shipments)
-
             return shipments.tracking_code
 
         def deliver_product(self, tracking_code):
@@ -58,11 +55,6 @@ class OrderManager(object):
             deliver_manager = DeliverProductManager(tracking_code)
             deliver_manager.validate_tracking_code()
             deliver_manager.check_date()
-            # check if this tracking_code is in shipments_store
-
-            # first read the file
-
-            # search this tracking_code
             deliver_manager.create_delivery()
             return True
 
@@ -70,5 +62,5 @@ class OrderManager(object):
 
     def __new__(cls):
         if not OrderManager.instance:
-            OrderManager.instance = OrderManager.__OrderManager()
+            OrderManager.instance = OrderManager.SingletonOrderManager()
         return OrderManager.instance

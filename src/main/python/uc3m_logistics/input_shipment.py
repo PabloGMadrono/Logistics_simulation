@@ -1,40 +1,42 @@
-
+"""Module for input file shipment"""
+import re
+import json
+from datetime import datetime
+from freezegun import freeze_time
 from uc3m_logistics.order_management_exception import OrderManagementException
 from uc3m_logistics.order_request import OrderRequest
-import re
-from uc3m_logistics.storage.orders_json_store import OrderStore
-from freezegun import freeze_time
-from datetime import datetime
-import json
-from .order_manager_config import JSON_FILES_PATH
+from uc3m_logistics.order_manager_config import JSON_FILES_PATH
+
 
 class InputFileShipment:
-
+    """Input file shipment class"""
     def __init__(self, input_file):
         self.__input_file = input_file
 
-    def check_label(self, list):
+    def check_label(self, data_list):
+        """Check label method"""
         try:
-            order_id = list["OrderID"]
-            email = list["ContactEmail"]
+            order_id = data_list["OrderID"]
+            email = data_list["ContactEmail"]
         except KeyError as ex:
-            raise OrderManagementException("Bad label")
+            raise OrderManagementException("Bad label") from ex
         return order_id, email
 
-    def file_read(self, input):
+    def file_read(self, input_file):
         """Difference with file_open is file not found error"""
         try:
-            with open(input, "r", encoding="utf-8", newline="") as file:
-                list = json.load(file)
+            with open(input_file, "r", encoding="utf-8", newline="") as file:
+                data_list = json.load(file)
         except json.JSONDecodeError as ex:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
         except FileNotFoundError as ex:
             raise OrderManagementException(
-                input[len(JSON_FILES_PATH):-5]
+                input_file[len(JSON_FILES_PATH):-5]
                 + " " + "not found") from ex
-        return list
+        return data_list
 
     def regex_check(self, order_id, email):
+        """regex check"""
         myregex = re.compile(r"[0-9a-fA-F]{32}$")
         order_id_check = myregex.fullmatch(order_id)
         myregex = re.compile(r'^[a-z0-9]+([\._]?[a-z0-9]+)+[@](\w+[.])+\w{2,3}$')
@@ -45,6 +47,7 @@ class InputFileShipment:
             raise OrderManagementException("contact email is not valid")
 
     def create_object(self):
+        """Method for creating objects"""
         mylist = self.file_read(self.__input_file)
         order_id, email = self.check_label(mylist)
         self.regex_check(order_id, email)

@@ -1,6 +1,7 @@
 """Tests for get_vaccine_date method"""
 from unittest import TestCase
 import os
+import shutil
 import json
 import hashlib
 from freezegun import freeze_time
@@ -185,7 +186,6 @@ class TestSendProduct(TestCase):
         file_store_date = JSON_FILES_PATH + "shipments_store.json"
 
 
-        import shutil
         if os.path.isfile(JSON_FILES_PATH + "swap.json"):
             os.remove(JSON_FILES_PATH + "swap.json")
         if not os.path.isfile(JSON_FILES_PATH + "orders_store_manipulated.json"):

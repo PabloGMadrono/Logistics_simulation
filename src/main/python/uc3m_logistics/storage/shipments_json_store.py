@@ -1,12 +1,13 @@
 """ Method for Shipment store"""
-from .json_store import JSONStore
-from ..order_manager_config import JSON_FILES_PATH
-from ..order_management_exception import OrderManagementException
+from uc3m_logistics.order_manager_config import JSON_FILES_PATH
+from uc3m_logistics.order_management_exception import OrderManagementException
+from uc3m_logistics.storage.json_store import JSONStore
 
-class ShipmentStore(JSONStore):
-    class __ShipmentStore(JSONStore):
 
-        # pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods
+class ShipmentStore:
+    """Singleton for ShipmentStore"""
+    class SingletonShipmentStore(JSONStore):
         """Class for shipment store"""
         def __init__(self):
             pass
@@ -23,5 +24,5 @@ class ShipmentStore(JSONStore):
 
     def __new__(cls):
         if not ShipmentStore.instance:
-            ShipmentStore.instance = ShipmentStore.__ShipmentStore()
+            ShipmentStore.instance = ShipmentStore.SingletonShipmentStore()
         return ShipmentStore.instance

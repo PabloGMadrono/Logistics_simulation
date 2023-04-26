@@ -40,14 +40,16 @@ class OrderRequest:
     def order_type( self ):
         """Property representing the type of order: REGULAR or PREMIUM"""
         return self.__order_type
+
     @order_type.setter
     def order_type( self, order_type):
         self.__order_type = OrderType(order_type).value
 
     @property
     def phone_number(self):
-        """Property representing the clients's phone number"""
+        """Property representing the client's phone number"""
         return self.__phone_number
+
     @phone_number.setter
     def phone_number(self, value):
         self.__phone_number = PhoneNumber(value).value
@@ -56,6 +58,7 @@ class OrderRequest:
     def product_id(self):
         """Property representing the products  EAN13 code"""
         return self.__product_id
+
     @product_id.setter
     def product_id(self, product_id):
         self.__product_id = ProductId(product_id).value
@@ -71,7 +74,7 @@ class OrderRequest:
         return self.__order_id
 
     @property
-    def zip_code( self ):
+    def zip_code(self):
         """Returns the order's zip_code"""
         return self.__zip_code
 

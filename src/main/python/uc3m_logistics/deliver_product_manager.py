@@ -1,14 +1,13 @@
-from uc3m_logistics.order_management_exception import OrderManagementException
-from uc3m_logistics.order_request import OrderRequest
+"""Module for Deliver product manager"""
 import re
-from uc3m_logistics.storage.orders_json_store import OrderStore
-from freezegun import freeze_time
-from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 from datetime import datetime
+from uc3m_logistics.order_management_exception import OrderManagementException
+from uc3m_logistics.storage.shipments_json_store import ShipmentStore
 
 
 class DeliverProductManager:
-
+    """Deliver Product Manager"""
+    # pylint: disable=protected-access
     def __init__(self, tracking_code):
         self.__tracking_code = tracking_code
         shipment = ShipmentStore()
@@ -37,9 +36,8 @@ class DeliverProductManager:
             raise OrderManagementException("Today is not the delivery date")
 
     def create_delivery(self):
+        """Create delivery method"""
         self.__shipment.file_open()
-        # append the delivery info
         self.__shipment._data_list.append(str(self.__tracking_code))
         self.__shipment._data_list.append(str(datetime.utcnow()))
-
         self.__shipment.write_file()

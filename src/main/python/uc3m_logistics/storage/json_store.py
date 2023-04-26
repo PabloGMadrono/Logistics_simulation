@@ -1,10 +1,11 @@
 """JSON store module"""
 import json
-from ..order_management_exception import OrderManagementException
-from ..order_manager_config import JSON_FILES_PATH
+from uc3m_logistics.order_management_exception import OrderManagementException
+from uc3m_logistics.order_manager_config import JSON_FILES_PATH
 
 
 class JSONStore:
+    # pylint: disable=too-few-public-methods
     """Class for JSON store"""
     _file_store = " "
     _data_list = []
@@ -28,7 +29,6 @@ class JSONStore:
         except json.JSONDecodeError as ex:
             raise OrderManagementException("JSON Decode Error - Wrong JSON Format") from ex
 
-
     def file_read(self):
         """Difference with file_open is file not found error"""
         try:
@@ -41,7 +41,6 @@ class JSONStore:
                 self._file_store[len(JSON_FILES_PATH):-5]
                 + " " + "not found") from ex
 
-
     def find(self, key, value):
         """method for finding values"""
         self.file_open()
@@ -52,11 +51,14 @@ class JSONStore:
 
     def add(self, item):
         """method for adding items"""
+        found = self.find("_OrderRequest__order_id", item.order_id)
+        if found:
+            raise OrderManagementException("order_id is already registered in orders_store")
         self.file_open()
         self._data_list.append(item.__dict__)
         self.write_file()
 
     def store_orders(self):
         """Method for saving the orders store"""
-        self._data_list = self.file_open()
+        self.file_open()
         self.add(self._data_list)
