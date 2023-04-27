@@ -64,3 +64,9 @@ class OrderManager:
         if not OrderManager.instance:
             OrderManager.instance = OrderManager.SingletonOrderManager()
         return OrderManager.instance
+
+    def __getattr__(self, nombre):
+        return getattr(self.instance, nombre)
+
+    def __setattr__(self, nombre, valor):
+        return setattr(self.instance, nombre, valor)

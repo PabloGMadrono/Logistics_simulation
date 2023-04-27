@@ -10,21 +10,21 @@ from uc3m_logistics.input_shipment import InputFileShipment
 class SingletonTests(TestCase):
     """Unitest class for singleton testing"""
     def test_singleton_(self):
-        """Testing singleton for order manager"""
+        #Testing singleton for order manager
         order_manager_1 = OrderManager()
         order_manager_2 = OrderManager()
         order_manager_3 = OrderManager()
         self.assertEqual(order_manager_1, order_manager_2)
         self.assertEqual(order_manager_2, order_manager_3)
         self.assertEqual(order_manager_1, order_manager_3)
-        """Testing singleton for shipment_store"""
+        #Testing singleton for shipment_store
         shipment_store_1 = ShipmentStore()
         shipment_store_2 = ShipmentStore()
         shipment_store_3 = ShipmentStore()
         self.assertEqual(shipment_store_1, shipment_store_2)
         self.assertEqual(shipment_store_1,shipment_store_3)
         self.assertEqual(shipment_store_2,shipment_store_3)
-        """Testing singleton for order_Store"""
+        #Testing singleton for order_Store
         order_store_1 = OrderStore()
         order_store_2 = OrderStore()
         order_store_3 = OrderStore()
@@ -40,4 +40,3 @@ class SingletonTests(TestCase):
         input_shipment_1 = InputFileShipment(file_shipments_store)
         input_shipment_2 = InputFileShipment(file_shipments_store)
         self.assertNotEqual(input_shipment_1, input_shipment_2)
-

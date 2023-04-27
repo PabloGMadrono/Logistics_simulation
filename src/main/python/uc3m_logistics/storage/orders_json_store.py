@@ -1,4 +1,4 @@
-"""Method for order store in JSON"""
+f"""Method for order store in JSON"""
 from uc3m_logistics.order_manager_config import JSON_FILES_PATH
 from uc3m_logistics.storage.json_store import JSONStore
 
@@ -20,3 +20,9 @@ class OrderStore:
         if not OrderStore.instance:
             OrderStore.instance = OrderStore.SingletonOrderStore()
         return OrderStore.instance
+
+    def __getattr__(self, nombre):
+        return getattr(self.instance, nombre)
+
+    def __setattr__(self, nombre, valor):
+        return setattr(self.instance, nombre, valor)
